@@ -3,7 +3,7 @@ title: 'Installing and Using Plugins'
 description: 'Learn how to find, install, and manage plugins that extend GitHub Copilot CLI with reusable agents, skills, hooks, and integrations.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-06-24
+lastUpdated: 2026-07-11
 estimatedReadingTime: '8 minutes'
 tags:
   - plugins
@@ -200,6 +200,16 @@ copilot plugin marketplace update
 copilot plugin uninstall my-plugin
 ```
 
+### The /plugins Dashboard
+
+**`/plugins` dashboard** (v1.0.69+): Inside an interactive Copilot CLI session, use `/plugins` to open a dedicated dashboard for managing your installed plugins. The dashboard shows all installed plugins, their status, and lets you enable, disable, or remove them without leaving your session:
+
+```
+/plugins        # open the plugins management dashboard
+```
+
+This is more convenient than running CLI commands when you're already in a session and want to quickly check or adjust your plugin setup.
+
 ### Loading Plugins from a Local Directory
 
 You can load plugins directly from a local directory without installing them from a marketplace, using the `--plugin-dir` flag when starting Copilot:
@@ -214,6 +224,24 @@ Plugins loaded this way appear in `/plugin list` under a separate **External Plu
 
 - **Marketplace plugins**: `~/.copilot/installed-plugins/MARKETPLACE/PLUGIN-NAME/`
 - **Direct installs**: `~/.copilot/installed-plugins/_direct/PLUGIN-NAME/`
+
+### Pinning Plugins to a Specific Commit
+
+**Plugin SHA pinning** (v1.0.70+): For reproducible environments and security-sensitive workflows, you can pin a plugin to an exact commit SHA using the `sha` field in your plugin source configuration. This ensures the plugin version never changes unexpectedly when running `plugin update`:
+
+```json
+{
+  "extraKnownMarketplaces": [
+    {
+      "name": "my-org-plugins",
+      "source": "my-org/internal-plugins",
+      "sha": "abc1234def5678..."
+    }
+  ]
+}
+```
+
+Pinning is especially useful in CI pipelines and team environments where you want consistent, auditable plugin versions rather than always pulling the latest commit.
 
 ## How Plugins Work at Runtime
 

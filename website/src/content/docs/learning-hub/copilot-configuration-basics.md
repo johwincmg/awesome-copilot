@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-07
+lastUpdated: 2026-07-11
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -44,6 +44,24 @@ Repository settings live in your codebase (typically in `.github/` although some
 - Custom agents for domain expertise
 
 **When to use**: For repository-wide standards, project-specific best practices, and reusable customizations that should be version-controlled and shared.
+
+#### Pinning Model and Effort with `.github/copilot/settings.json`
+
+**Repository-pinned settings** (v1.0.70+): Trusted repositories can pin the AI model, reasoning effort level, and context tier for all sessions in that repository, and also extend the URL/MCP/skill deny lists. Place a `.github/copilot/settings.json` file at the root of your repository:
+
+```json
+{
+  "model": "claude-sonnet-4",
+  "reasoningEffort": "high",
+  "contextTier": "long_context",
+  "denyUrls": ["*.internal.example.com"],
+  "denyMcpTools": ["dangerous-tool"]
+}
+```
+
+This ensures everyone working in the repository uses the same model and effort level — useful for security-sensitive repositories that require high reasoning effort, or cost-controlled environments where you want to limit the default model.
+
+> **Note**: These settings only apply to trusted repositories. Untrusted repositories (those you haven't explicitly trusted) cannot use this file to change CLI behavior.
 
 ### Organisation Settings (GitHub.com only)
 
@@ -423,6 +441,8 @@ The model picker opens in a **full-screen view** with inline reasoning effort ad
 
 **Model family aliases** (v1.0.64+): Instead of typing a full model name, you can use short family aliases in the model setting: `opus`, `sonnet`, `haiku` (Anthropic), and `gpt`, `gemini` (Google/OpenAI). The CLI resolves the alias to the latest available model in that family. This is especially useful in scripts or configuration files where you want to track the best model in a family without hardcoding a version string.
 
+**GPT-5.6** (v1.0.70+): The GPT-5.6 model is now available in GitHub Copilot CLI. It offers strong code generation and reasoning capabilities and is available in the model picker.
+
 ### CLI Session Commands
 
 The `/settings` command (v1.0.61+) opens an interactive dialog to browse and edit all user settings in one place. Use it to discover available settings, toggle options, and update values without manually editing your config file:
@@ -432,6 +452,14 @@ The `/settings` command (v1.0.61+) opens an interactive dialog to browse and edi
 ```
 
 The settings dialog supports search — type to filter settings by name. Changes take effect immediately.
+
+**`/refine`** (v1.0.70+): Use `/refine` to rewrite a rough, stream-of-consciousness prompt into a clear, well-structured one before sending it to the agent. This is useful when you have a complex idea but aren't sure how to phrase it effectively:
+
+```
+/refine       # opens the prompt refinement flow
+```
+
+`/refine` rewrites your draft prompt using the AI and presents the refined version for your review before sending. It helps reduce ambiguous requests that lead to misaligned results.
 
 GitHub Copilot CLI has two commands for managing session state, with distinct behaviours:
 
