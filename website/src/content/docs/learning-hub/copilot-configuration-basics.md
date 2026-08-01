@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-13
+lastUpdated: 2026-08-01
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -406,6 +406,15 @@ Settings: File → Settings → Tools → GitHub Copilot
 
 ### GitHub Copilot CLI
 
+**Authentication** *(v1.0.77+)*: The `copilot login` command now defaults to a **browser-based (web) OAuth flow** on local interactive terminals. A browser window opens automatically to complete sign-in, which is simpler than the previous device-code flow. The device-code flow remains the default for remote and headless terminals. You can force either flow explicitly:
+
+```bash
+copilot login --web-flow      # force browser-based login
+copilot login --device-code   # force device-code login
+```
+
+You can also select the flow interactively with `/login` inside an existing session.
+
 Configuration file: `~/.copilot-cli/config.json`
 
 ```json
@@ -429,6 +438,7 @@ CLI settings use **camelCase** naming. Key settings added in recent releases:
 | `proxy` | HTTP(S) proxy URL for all outbound CLI requests (e.g., `http://proxy.example.com:8080`) (v1.0.64+) |
 | `sessionLimits` | Restrict credit or turn usage for a session; limits apply across the current conversation and reset on `/clear` (v1.0.66+) |
 | `stayInAutopilot` | Keep the CLI in autopilot mode after an autopilot task completes, instead of returning to interactive mode (v1.0.69+) |
+| `allowDevToolCaches` | Allow sandboxed builds to access toolchain caches, registries, and package installs so builds work without extra setup. Defaults to `true`; set `false` to opt out. (v1.0.78+) |
 
 > **Note**: Older snake_case names (e.g., `include_gitignored`, `auto_updates_channel`) are still accepted for backward compatibility, but camelCase is now the preferred format.
 
@@ -713,9 +723,25 @@ Use `/autopilot` when you want to flip between supervised and unsupervised opera
 
 > **Enhanced autopilot (v1.0.64+)**: When autopilot mode is active — including when launched with `--autopilot` at startup or during automatic continuation turns — the agent automatically handles elicitation dialogs, `ask_user` prompts, sampling requests, and permission prompts without surfacing them as interactive dialogs. This means long-running automated sessions can proceed end-to-end without manual confirmation steps.
 
-> **Auto allow-all mode (v1.0.69+)**: In addition to the standard allow-all mode (which approves everything), the CLI now supports an **auto allow-all** mode that uses an LLM judge to evaluate each tool request. When enabled, the judge automatically approves requests it evaluates as acceptable, and asks you for manual confirmation only for requests it considers risky. This gives you a middle ground between full autopilot and fully supervised operation — most routine actions proceed automatically while unusual or potentially dangerous actions still surface for your review. As of v1.0.69-3, this mode requires experimental features to be enabled — use `/experimental on` or start the CLI with `--experimental` — then activate it with `/allow-all auto`. The previous `AUTO_APPROVAL` environment variable approach has been removed in favour of experimental mode.
+> **Auto allow-all mode (v1.0.69+)**: In addition to the standard allow-all mode (which approves everything), the CLI now supports an **auto allow-all** mode that uses an LLM judge to evaluate each tool request. When enabled, the judge automatically approves requests it evaluates as acceptable, and asks you for manual confirmation only for requests it considers risky. This gives you a middle ground between full autopilot and fully supervised operation — most routine actions proceed automatically while unusual or potentially dangerous actions still surface for your review. As of v1.0.69-3, this mode requires experimental features to be enabled — use `/experimental on` or start the CLI with `--experimental` — then activate it with `/allow-all auto`. The previous `AUTO_APPROVAL` environment variable approach has been removed in favour of experimental mode. As of v1.0.78+, the safety-judge model is automatically selected by the server and is no longer user-configurable.
 
 > **Read-only `gh` CLI commands (v1.0.46+)**: Read-only `gh` commands — such as `gh issue list`, `gh pr view`, `gh run status`, and other commands that don't write to GitHub — are **automatically approved** without a permission prompt. Only commands that write to GitHub (like creating issues, merging PRs) still require explicit approval. This reduces friction during exploratory sessions where you frequently check issue or PR status.
+
+The `/permissions` command *(v1.0.78+)* provides a unified way to switch between approval modes directly from an interactive session:
+
+```
+/permissions        # open the permissions dialog to review and switch approval mode
+```
+
+Use `/permissions` as a guided alternative to the lower-level `/allow-all` and `/autopilot` commands when you want a clear overview of the current mode and available options.
+
+The `/limits predict` command *(v1.0.76+)* suggests a per-session AI-credit limit by analysing your recent session history:
+
+```
+/limits predict     # suggest a credit limit based on similar past sessions
+```
+
+This is useful before starting a long autonomous task — you can apply the suggested limit to prevent a runaway session from consuming more credits than expected.
 
 The `--effort` flag (shorthand for `--reasoning-effort`) controls how much computational reasoning the model applies to a request:
 
