@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-07-13
+lastUpdated: 2026-08-02
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -428,7 +428,7 @@ CLI settings use **camelCase** naming. Key settings added in recent releases:
 | `continueOnAutoMode` | Automatically switch to the auto model on rate limit instead of pausing |
 | `proxy` | HTTP(S) proxy URL for all outbound CLI requests (e.g., `http://proxy.example.com:8080`) (v1.0.64+) |
 | `sessionLimits` | Restrict credit or turn usage for a session; limits apply across the current conversation and reset on `/clear` (v1.0.66+) |
-| `stayInAutopilot` | Keep the CLI in autopilot mode after an autopilot task completes, instead of returning to interactive mode (v1.0.69+) |
+| `stayInAutopilot` | Keep the CLI in autopilot mode after an autopilot task completes. **On by default as of v1.0.76**; set to `false` to return to interactive mode after each task (v1.0.69+) |
 
 > **Note**: Older snake_case names (e.g., `include_gitignored`, `auto_updates_channel`) are still accepted for backward compatibility, but camelCase is now the preferred format.
 
@@ -711,6 +711,17 @@ The `/autopilot` command (v1.0.45+) is a quick in-session toggle that switches b
 
 Use `/autopilot` when you want to flip between supervised and unsupervised operation mid-session without typing out the full `/allow-all on` or `/allow-all off` commands.
 
+The `/permissions` command *(v1.0.78+)* provides a richer interface for switching between approval modes in a single command, replacing the need to toggle `/allow-all` and `/autopilot` separately:
+
+```
+/permissions          # show current approval mode
+/permissions ask      # require approval for each tool call (interactive)
+/permissions auto     # use the LLM judge to auto-approve low-risk actions
+/permissions allow    # approve everything (full autopilot / allow-all)
+```
+
+This is particularly useful when you want to quickly shift from interactive review to full autopilot and back without remembering the exact `/allow-all` or `/autopilot` syntax.
+
 > **Enhanced autopilot (v1.0.64+)**: When autopilot mode is active — including when launched with `--autopilot` at startup or during automatic continuation turns — the agent automatically handles elicitation dialogs, `ask_user` prompts, sampling requests, and permission prompts without surfacing them as interactive dialogs. This means long-running automated sessions can proceed end-to-end without manual confirmation steps.
 
 > **Auto allow-all mode (v1.0.69+)**: In addition to the standard allow-all mode (which approves everything), the CLI now supports an **auto allow-all** mode that uses an LLM judge to evaluate each tool request. When enabled, the judge automatically approves requests it evaluates as acceptable, and asks you for manual confirmation only for requests it considers risky. This gives you a middle ground between full autopilot and fully supervised operation — most routine actions proceed automatically while unusual or potentially dangerous actions still surface for your review. As of v1.0.69-3, this mode requires experimental features to be enabled — use `/experimental on` or start the CLI with `--experimental` — then activate it with `/allow-all auto`. The previous `AUTO_APPROVAL` environment variable approach has been removed in favour of experimental mode.
@@ -760,6 +771,22 @@ copilot --no-sandbox -p "Set up development environment with system tools"
 ```
 
 These flags apply only to the current invocation — your persisted sandbox preference remains unchanged.
+
+> **`allowDevToolCaches` setting (v1.0.78+)**: The `allowDevToolCaches` sandbox setting (on by default) grants sandboxed builds access to toolchain caches, registries, and package installs — so builds work without extra configuration inside the sandbox. Set it to `false` in your `config.json` to opt out and enforce strict cache isolation:
+>
+> ```json
+> {
+>   "allowDevToolCaches": false
+> }
+> ```
+
+> **Predicting session limits**: Use `/limits predict` (v1.0.76+) to get an AI-suggested credit limit for your current task based on similar past sessions. This helps you set a `sessionLimits` budget before starting long-running work without having to guess:
+>
+> ```
+> /limits predict
+> ```
+>
+> See the `sessionLimits` setting in the [Settings Reference](#settings-reference) above for how to apply a credit or turn budget.
 
 The `--attachment` flag (available in prompt mode, `-p`) lets you attach files — images or native documents — to the initial prompt in non-interactive mode:
 
